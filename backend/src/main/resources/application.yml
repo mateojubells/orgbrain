@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: orgbrain
+  config:
+    # Lee las variables (GEMINI_API_KEY, DB_PASSWORD...) de un fichero .env en backend/ o en la raíz del proyecto.
+    # Las variables de entorno del sistema tienen prioridad sobre el fichero.
+    import: optional:file:.env[.properties],optional:file:../.env[.properties]
+  datasource:
+    # XAMPP por defecto: root sin contraseña en localhost:3306. La BD se crea sola si no existe.
+    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:orgbrain}?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+  sql:
+    init:
+      # Ejecuta schema.sql (CREATE TABLE IF NOT EXISTS) en cada arranque.
+      mode: always
+      encoding: UTF-8
+  jpa:
+    open-in-view: false
+    hibernate:
+      # El esquema lo gestiona schema.sql; Hibernate solo comprueba que las entidades encajan.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        # Hibernate 7 no soporta oficialmente MariaDB 10.4 (la de XAMPP); el dialecto legacy sí.
+        dialect: org.hibernate.community.dialect.MariaDBLegacyDialect
+        jdbc.batch_size: 50
+        order_inserts: true
+        order_updates: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+orgbrain:
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  # Proyectos de la empresa simulada: los usan el seeder y el asistente para reconocerlos en el chat.
+  proyectos: Orión,Atlas,Fénix,Nexo,Aurora,Vega,Titán,Lince
+  seed:
+    # Puebla la BD con datos falsos si está vacía (idempotente).
+    enabled: ${SEED_ENABLED:true}
+    random-seed: 42
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL:gemini-2.5-flash}
+    base-url: https://generativelanguage.googleapis.com/v1beta
+    timeout-seconds: 40
+
+logging:
+  level:
+    com.orgbrain: DEBUG
+    org.hibernate.orm.deprecation: ERROR
