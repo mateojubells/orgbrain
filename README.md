@@ -1,69 +1,73 @@
-# OrgBrain — Cerebro central de empresa
+# OrgBrain — A Company's Central Brain
 
-Herramienta interna que prioriza el trabajo de una empresa según las **dependencias entre personas**: si tu tarea
-bloquea a otras, su prioridad sube sola, sin que nadie tenga que reclamarla. Una petición de urgencia 1 que frena a
-cuatro personas acaba por encima de un "urgente" que no bloquea a nadie.
+An internal tool that prioritizes a company's work according to the **dependencies between people**: if your task
+blocks others, its priority rises on its own, without anyone having to chase it. An urgency-1 request that holds up
+four people ends up ranked above an "urgent" one that blocks nobody.
 
-**Qué resuelve.** En cualquier empresa, lo que de verdad frena un proyecto suele ser una gestión pequeña en el backlog
-de otro departamento: una licencia, un acceso, un alta. Quien la tiene asignada no sabe a quién está bloqueando, y
-quien espera solo puede insistir por correo. OrgBrain hace visible esa cadena y recoloca las prioridades solo.
+**What it solves.** In any company, what really holds a project back is often a small request sitting in another
+department's backlog: a license, an access grant, an onboarding. Whoever owns it doesn't know who they are blocking,
+and whoever is waiting can only nag by email. OrgBrain makes that chain visible and reprioritizes automatically.
 
-Cuatro piezas:
+Four building blocks:
 
 | | |
 |---|---|
-| **Motor de prioridades** | Propaga la urgencia por el grafo de dependencias y escribe el motivo de cada subida |
-| **Asistente por persona** | Crea tareas desde lenguaje natural, las asigna a quien corresponde, recuerda el contexto de cada usuario y aplica cambios hablando |
-| **Gestión de proyectos** | Salud, avance, equipo, hitos, riesgos y decisiones, con mapa mental y grafo propios |
-| **Grafo de dependencias** | Toda la red de bloqueos, con la cadena completa de una tarea al seleccionarla |
+| **Priority engine** | Propagates urgency through the dependency graph and records the reason for every bump |
+| **Per-person assistant** | Creates tasks from natural language, assigns them to the right person, remembers each user's context and applies changes through conversation |
+| **Project management** | Health, progress, team, milestones, risks and decisions, with its own mind map and graph |
+| **Dependency graph** | The whole network of blockers, showing the full chain of a task when selected |
 
 ```
-frontend/  React 19 + Vite + React Flow (login simulado, mis tareas, asistente, proyectos, grafo, directorio)
-backend/   Spring Boot 4.1 (Java 21) + JPA + MySQL/MariaDB de XAMPP + Gemini API
+frontend/  React 19 + Vite + React Flow (simulated login, my tasks, assistant, projects, graph, directory)
+backend/   Spring Boot 4.1 (Java 21) + JPA + XAMPP MySQL/MariaDB + Gemini API
 ```
 
-> **Estado: prototipo (MVP v1).** Funciona de principio a fin con **datos simulados** (100 empleados, 300 tareas,
-> 72 dependencias, 8 proyectos) generados al arrancar. No hay autenticación real (se elige usuario de una lista) ni
-> integraciones con correo, Teams, Slack o Jira. Nada de lo que aparece en la app corresponde a personas reales.
+> **Status: prototype (MVP v1).** It works end to end with **simulated data** (100 employees, 300 tasks,
+> 72 dependencies, 8 projects) generated at startup. There is no real authentication (you pick a user from a list)
+> and no integration with email, Teams, Slack or Jira. Nothing shown in the app corresponds to real people.
 
-## Requisitos
+> **Note:** the UI, the seed data and the API field names (`peticiones`, `tareas_propias`, `urgencia`…) are in
+> Spanish. Identifiers, routes and JSON keys are kept as they appear in the code.
 
-| Herramienta | Versión | Notas |
+## Requirements
+
+| Tool | Version | Notes |
 |---|---|---|
-| JDK | 21 o superior | Probado con JDK 26 |
-| Node.js | 20 o superior | Probado con Node 24 |
-| XAMPP | con MySQL | XAMPP trae **MariaDB 10.4**, compatible |
-| Maven | — | No hace falta: se usa el wrapper `mvnw` incluido |
-| API key de Gemini | opcional | Gratuita en https://aistudio.google.com/apikey |
+| JDK | 21 or higher | Tested with JDK 26 |
+| Node.js | 20 or higher | Tested with Node 24 |
+| XAMPP | with MySQL | XAMPP ships **MariaDB 10.4**, which is compatible |
+| Maven | — | Not needed: the bundled `mvnw` wrapper is used |
+| Gemini API key | optional | Free at https://aistudio.google.com/apikey |
 
-## Puesta en marcha
+## Getting Started
 
-### 1. Base de datos (XAMPP)
+### 1. Database (XAMPP)
 
-1. Abre el panel de control de XAMPP y pulsa **Start** en MySQL.
-2. No hace falta crear nada: al arrancar, el backend crea la base de datos `orgbrain`, las tablas (`schema.sql`) y
-   los datos simulados si está vacía.
+1. Open the XAMPP control panel and click **Start** on MySQL.
+2. You don't need to create anything: on startup, the backend creates the `orgbrain` database, the tables
+   (`schema.sql`) and the simulated data if it is empty.
 
-Si tu MySQL no usa `root` sin contraseña, configura las variables `DB_USER` y `DB_PASSWORD` (ver tabla abajo).
-Si prefieres crear el esquema a mano, importa `backend/src/main/resources/schema.sql` desde phpMyAdmin
-(`http://localhost/phpmyadmin`) en una base de datos llamada `orgbrain`.
+If your MySQL doesn't use `root` without a password, set the `DB_USER` and `DB_PASSWORD` variables (see the table
+below). If you prefer to create the schema by hand, import `backend/src/main/resources/schema.sql` from phpMyAdmin
+(`http://localhost/phpmyadmin`) into a database called `orgbrain`.
 
 ### 2. Backend
 
-1. Copia `.env.example` como `.env` (en la raíz del proyecto) y pon tu clave: `GEMINI_API_KEY=...`.
-   Es opcional: sin clave el chat funciona con reglas simples. El fichero `.env` no se sube al repositorio.
-2. Arranca:
+1. Copy `.env.example` to `.env` (in the project root) and add your key: `GEMINI_API_KEY=...`.
+   It is optional: without a key the chat works with simple rules. The `.env` file is not committed to the repository.
+2. Start it:
 
 ```powershell
 cd backend
 .\mvnw.cmd spring-boot:run
 ```
 
-También puedes pasar la clave como variable de entorno (`$env:GEMINI_API_KEY = "..."` en PowerShell), que tiene
-prioridad sobre el `.env`, pero solo dura mientras esa ventana de terminal esté abierta.
+You can also pass the key as an environment variable (`$env:GEMINI_API_KEY = "..."` in PowerShell), which takes
+precedence over `.env`, but only lasts while that terminal window stays open.
 
-La primera vez tarda un poco (descarga Maven y dependencias). Cuando veas en el log
-`Seeder: 100 empleados, 17 dominios, 300 tareas, 72 dependencias`, la API está lista en `http://localhost:8080/api`.
+The first run takes a while (it downloads Maven and dependencies). When you see
+`Seeder: 100 empleados, 17 dominios, 300 tareas, 72 dependencias` in the log, the API is ready at
+`http://localhost:8080/api`.
 
 ### 3. Frontend
 
@@ -73,117 +77,117 @@ npm install
 npm run dev
 ```
 
-Abre `http://localhost:5173`. Vite redirige `/api` al backend (puerto 8080), así que no hay que configurar CORS.
+Open `http://localhost:5173`. Vite proxies `/api` to the backend (port 8080), so there is no need to configure CORS.
 
-### Variables de entorno
+### Environment variables
 
-| Variable | Por defecto | Descripción |
+| Variable | Default | Description |
 |---|---|---|
-| `GEMINI_API_KEY` | *(vacío)* | API key de Google AI Studio. Sin ella, el chat usa un extractor por reglas |
-| `GEMINI_MODEL` | `gemini-2.5-flash` | Modelo de Gemini (cualquiera con capa gratuita y salida estructurada) |
-| `DB_HOST` / `DB_PORT` | `localhost` / `3306` | Servidor MySQL/MariaDB |
-| `DB_NAME` | `orgbrain` | Se crea sola si no existe |
-| `DB_USER` / `DB_PASSWORD` | `root` / *(vacío)* | Credenciales por defecto de XAMPP |
-| `SEED_ENABLED` | `true` | Generar datos simulados si la BD está vacía |
-| `SERVER_PORT` | `8080` | Puerto del backend |
-| `CORS_ORIGINS` | `http://localhost:5173` | Orígenes permitidos si el frontend no usa el proxy de Vite |
-| `VITE_BACKEND_URL` | `http://localhost:8080` | (frontend) A dónde redirige Vite las llamadas a `/api` |
+| `GEMINI_API_KEY` | *(empty)* | Google AI Studio API key. Without it, the chat uses a rule-based extractor |
+| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model (any model with a free tier and structured output) |
+| `DB_HOST` / `DB_PORT` | `localhost` / `3306` | MySQL/MariaDB server |
+| `DB_NAME` | `orgbrain` | Created automatically if it doesn't exist |
+| `DB_USER` / `DB_PASSWORD` | `root` / *(empty)* | Default XAMPP credentials |
+| `SEED_ENABLED` | `true` | Generate simulated data if the database is empty |
+| `SERVER_PORT` | `8080` | Backend port |
+| `CORS_ORIGINS` | `http://localhost:5173` | Allowed origins if the frontend doesn't use the Vite proxy |
+| `VITE_BACKEND_URL` | `http://localhost:8080` | (frontend) Where Vite proxies `/api` calls to |
 
-### Regenerar los datos de demo
+### Regenerating the demo data
 
-El seeder es idempotente: si ya hay empleados no hace nada. Para empezar de cero, borra la base de datos
-(en phpMyAdmin, o con `C:\xampp\mysql\bin\mysql.exe -u root -e "DROP DATABASE orgbrain;"`) y reinicia el backend.
-La semilla aleatoria es fija, así que siempre se generan los mismos datos.
+The seeder is idempotent: if employees already exist, it does nothing. To start from scratch, drop the database
+(in phpMyAdmin, or with `C:\xampp\mysql\bin\mysql.exe -u root -e "DROP DATABASE orgbrain;"`) and restart the backend.
+The random seed is fixed, so the same data is always generated.
 
-## Gestión de proyectos
+## Project Management
 
-Cada proyecto tiene responsable, estado (planificación, en curso, en riesgo, pausado, completado, cancelado),
-prioridad 1-5, fechas, equipo con rol y dedicación, hitos y un diario de decisiones, riesgos, bloqueos y cambios.
-Las tareas pertenecen a un proyecto y **la prioridad del proyecto empuja a sus tareas** en el motor
-(prioridad 5: +0.5; prioridad 4: +0.25; en riesgo: +0.25).
+Each project has an owner, a status (planning, in progress, at risk, paused, completed, cancelled), a priority from
+1 to 5, dates, a team with role and allocation, milestones, and a log of decisions, risks, blockers and changes.
+Tasks belong to a project and **the project's priority pushes its tasks up** in the engine
+(priority 5: +0.5; priority 4: +0.25; at risk: +0.25).
 
-La pestaña **Proyectos** muestra de un vistazo la salud de cada uno y, al abrirlo:
+The **Projects** tab shows each project's health at a glance and, when opened:
 
-| Vista | Qué da |
+| View | What it gives you |
 |---|---|
-| Resumen | Siguientes pasos (lo que se puede hacer ya), lo más prioritario, cuellos de botella y dependencias con otros proyectos |
-| Mapa mental | Equipo, siguientes pasos, cuellos de botella, hitos, riesgos y dependencias externas alrededor del proyecto |
-| Tareas | Tablero por estado y alta de tareas nuevas dentro del proyecto |
-| Equipo | Quién trabaja en él, con rol, dedicación, tareas abiertas, cuántas esperan a otras y su carga total |
-| Hitos | Línea de tiempo con los vencidos marcados |
-| Diario | Riesgos y bloqueos abiertos, decisiones y el histórico de cambios con su autor |
-| Dependencias | El grafo, limitado al proyecto y a las tareas de fuera conectadas con él |
+| Summary | Next steps (what can be done right now), top priorities, bottlenecks and dependencies on other projects |
+| Mind map | Team, next steps, bottlenecks, milestones, risks and external dependencies around the project |
+| Tasks | Board by status and creation of new tasks within the project |
+| Team | Who works on it, with role, allocation, open tasks, how many are waiting on others and their total workload |
+| Milestones | Timeline with overdue ones highlighted |
+| Log | Open risks and blockers, decisions and the change history with its author |
+| Dependencies | The graph, limited to the project and the outside tasks connected to it |
 
-**Salud del proyecto**: rojo si está marcado en riesgo, se pasó la fecha objetivo, hay hitos vencidos, hay 3 o más
-tareas vencidas o el 50% o más de lo abierto espera a otras tareas; amarillo con alguna tarea vencida, riesgos
-abiertos, 25% o más esperando, fecha objetivo a menos de 14 días con menos del 70% hecho, o proyecto pausado.
+**Project health**: red if it is flagged at risk, the target date has passed, there are overdue milestones, there are
+3 or more overdue tasks, or 50% or more of the open work is waiting on other tasks; yellow with any overdue task, open
+risks, 25% or more waiting, a target date less than 14 days away with less than 70% done, or a paused project.
 
-Todos los cambios (por web o por chat) quedan registrados en el diario del proyecto con quién los hizo. El login es
-simulado, así que cualquiera puede editar cualquier proyecto: no hay permisos en esta v1.
+All changes (through the web or the chat) are recorded in the project log along with who made them. The login is
+simulated, so anyone can edit any project: there are no permissions in this v1.
 
-### Desde el chat
+### From the chat
 
-- "¿Cómo va Orión?", "¿qué falta en Atlas?", "¿cómo van mis proyectos?" → salud, avance, prioridades, siguientes
-  pasos, cuellos de botella, próximo hito y riesgos.
-- "Pon Atlas en riesgo", "sube la prioridad de Nexo a 5", "la fecha objetivo de Fénix pasa al 30 de octubre".
-- "Añade a Hugo Benítez al proyecto Orión como desarrollador backend al 40%", "quita a X del equipo",
-  "el responsable de Lince pasa a ser Y".
-- "Crea el proyecto Expansión a Portugal", "nuevo hito en Orión: ensayo general el viernes", "hito X completado".
-- "Riesgo en Atlas: el proveedor no llega", "hemos decidido…", "ese riesgo ya está resuelto".
-- "Marca la #303 como hecha", "sube la urgencia de la #12 a 5", "pásale la #45 a Laura", "mete la #77 en Orión".
+- "How is Orión doing?", "what's missing in Atlas?", "how are my projects?" → health, progress, priorities, next
+  steps, bottlenecks, next milestone and risks.
+- "Put Atlas at risk", "raise Nexo's priority to 5", "Fénix's target date moves to October 30".
+- "Add Hugo Benítez to the Orión project as a backend developer at 40%", "remove X from the team",
+  "Lince's owner is now Y".
+- "Create the project Expansion to Portugal", "new milestone in Orión: dress rehearsal on Friday", "milestone X completed".
+- "Risk in Atlas: the supplier isn't arriving", "we have decided…", "that risk is already resolved".
+- "Mark #303 as done", "raise #12's urgency to 5", "hand #45 over to Laura", "put #77 in Orión".
 
-## Guion de demo (5 minutos)
+## Demo Script (5 minutes)
 
-1. **Entra como Laura Martín Sánchez** (Administradora de Microsoft 365). Su primera tarea, *"Asignar licencias de
-   GitHub Copilot al equipo de Orión"*, tiene urgencia propia **2** pero calculada **6.4**: 🔺 bloquea a 4 personas.
-   Pulsa *Detalles* para ver a quién bloquea.
-2. **Grafo de dependencias → Mi red**: se ve cómo esa tarea bloquea a tres desarrolladores y, en cadena, la demo de
-   Orión de Ana. Cambia a *Toda la empresa* para ver las cadenas largas (migración al ERP Fénix, 6 eslabones).
-3. **Cambia a Ana López García** (jefa del proyecto Orión) → *Asistente*. Escribe:
-   *"Estoy desarrollando el proyecto Orión y me falta la licencia de Copilot para el equipo"*.
-   El asistente crea una tarea en el backlog de Laura (responsable de licencias M365), la enlaza como subtarea que
-   bloquea la demo de Orión de Ana y guarda la necesidad en memoria. El panel derecho muestra lo que recuerda de Ana
-   (el seeder ya le dio contexto previo sobre Orión y Lince).
-4. Repite el mismo mensaje: detecta que la petición ya existe y no la duplica.
-5. Prueba *"Necesito acceso a la VPN para trabajar desde casa"* (va a IT redes) o
-   *"Créame una subtarea para preparar las diapositivas de la demo dentro del proyecto Orión"* (tarea propia enlazada).
-6. **Vuelve a Laura** y marca como *Hecha* la tarea de licencias: las prioridades se recalculan al momento y deja de
-   bloquear a nadie.
-7. **Proyectos**: abre *Atlas* (en rojo). En *Resumen* verás que lo que lo frena es el certificado SSL; en *Mapa
-   mental*, el proyecto entero de un vistazo; en *Equipo*, quién va cargado. Prueba a decirle al asistente
-   "¿cómo va Atlas?" y "añade a [alguien] al proyecto Atlas como analista".
+1. **Log in as Laura Martín Sánchez** (Microsoft 365 administrator). Her first task, *"Assign GitHub Copilot licenses
+   to the Orión team"*, has its own urgency of **2** but a calculated one of **6.4**: 🔺 it blocks 4 people.
+   Click *Details* to see who it blocks.
+2. **Dependency graph → My network**: you can see how that task blocks three developers and, down the chain, Ana's
+   Orión demo. Switch to *Whole company* to see the long chains (migration to the Fénix ERP, 6 links).
+3. **Switch to Ana López García** (head of the Orión project) → *Assistant*. Type:
+   *"I'm developing the Orión project and I'm missing the Copilot license for the team"*.
+   The assistant creates a task in Laura's backlog (M365 licenses owner), links it as a subtask that blocks Ana's
+   Orión demo and saves the need to memory. The right-hand panel shows what it remembers about Ana (the seeder
+   already gave her prior context about Orión and Lince).
+4. Repeat the same message: it detects that the request already exists and doesn't duplicate it.
+5. Try *"I need VPN access to work from home"* (goes to IT networking) or
+   *"Create a subtask for me to prepare the demo slides within the Orión project"* (own task, linked).
+6. **Go back to Laura** and mark the licenses task as *Done*: priorities are recalculated instantly and it stops
+   blocking anyone.
+7. **Projects**: open *Atlas* (shown in red). In *Summary* you'll see that what holds it back is the SSL
+   certificate; in *Mind map*, the whole project at a glance; in *Team*, who is overloaded. Try asking the assistant
+   "How is Atlas doing?" and "add [someone] to the Atlas project as an analyst".
 
-Otros escenarios del seeder: el certificado SSL de **Javier Ortega** (urgencia 1) bloquea el lanzamiento del portal
-Atlas en Ventas, Marketing y la PMO; el alta de un analista de **Marta Gil** (RRHH, urgencia 1) bloquea el cierre
-trimestral de Finanzas; el presupuesto de traducción de **Carmen Ruiz** bloquea la internacionalización de Marketing.
+Other seeder scenarios: **Javier Ortega**'s SSL certificate (urgency 1) blocks the launch of the Atlas portal for
+Sales, Marketing and the PMO; the onboarding of an analyst by **Marta Gil** (HR, urgency 1) blocks Finance's quarterly
+close; **Carmen Ruiz**'s translation budget blocks Marketing's internationalization.
 
-## Cómo funciona
+## How It Works
 
-### Motor de repriorización
+### Reprioritization engine
 
-`MotorPriorizacionService` recorre el grafo de las hojas hacia arriba (orden topológico inverso, algoritmo de Kahn).
-Para cada tarea abierta:
+`MotorPriorizacionService` walks the graph from the leaves upward (reverse topological order, Kahn's algorithm).
+For each open task:
 
-| Paso | Cálculo |
+| Step | Calculation |
 |---|---|
-| Base | urgencia propia + bonus por fecha límite (vencida +1, ≤ 3 días +0.5, ≤ 7 días +0.25) + bonus del proyecto (prioridad 5 +0.5, prioridad 4 +0.25, en riesgo +0.25), máx. 5 |
-| Heredada | máximo del *nivel* de las tareas que bloquea directamente (×1 si la dependencia es dura, ×0.6 si es blanda) |
-| Nivel | max(base, heredada): es lo que se transmite hacia arriba, así la urgencia se propaga por cadenas largas |
-| Bonus por bloqueo | +0.35 por cada tarea urgente (nivel ≥ 4) bloqueada directa o transitivamente, +0.1 por las demás, máx. 2.5 |
-| Calculada | nivel + bonus, entre 1 y 10 |
+| Base | own urgency + due-date bonus (overdue +1, ≤ 3 days +0.5, ≤ 7 days +0.25) + project bonus (priority 5 +0.5, priority 4 +0.25, at risk +0.25), max. 5 |
+| Inherited | maximum of the *level* of the tasks it directly blocks (×1 if the dependency is hard, ×0.6 if soft) |
+| Level | max(base, inherited): this is what gets passed upward, so urgency propagates along long chains |
+| Blocking bonus | +0.35 for each urgent task (level ≥ 4) blocked directly or transitively, +0.1 for the others, max. 2.5 |
+| Calculated | level + bonus, between 1 and 10 |
 
-Las tareas **hechas** no bloquean. También guarda el motivo legible (*"Hereda urgencia 5.0 de «…» (Hugo Benítez) ·
-Bloquea a 4 tareas (4 urgentes) de 4 personas"*) y los contadores que muestra la interfaz. Se recalcula todo tras
-cada cambio de tarea o dependencia (con 300 tareas tarda ~50 ms) y bajo demanda con `POST /api/priorizacion/recalcular`.
-Al crear una dependencia se rechaza si formaría un ciclo.
+**Done** tasks don't block. It also stores a human-readable reason (*"Inherits urgency 5.0 from «…» (Hugo Benítez) ·
+Blocks 4 tasks (4 urgent) belonging to 4 people"*) and the counters shown by the interface. Everything is recalculated
+after every task or dependency change (about 50 ms with 300 tasks) and on demand with
+`POST /api/priorizacion/recalcular`. Creating a dependency is rejected if it would form a cycle.
 
-### Chat, asignación y memoria
+### Chat, assignment and memory
 
-Cada mensaje (`ChatService`) sigue estos pasos:
+Each message (`ChatService`) goes through these steps:
 
-1. **Contexto**: recupera la memoria relevante del usuario (coincidencia de palabras clave y proyecto, sin
-   embeddings en v1), sus tareas abiertas, el directorio de responsabilidades y los últimos 10 mensajes.
-2. **Extracción estructurada con Gemini** (`responseMimeType: application/json` + `responseSchema`):
+1. **Context**: retrieves the user's relevant memory (keyword and project matching, no embeddings in v1), their open
+   tasks, the responsibilities directory and the last 10 messages.
+2. **Structured extraction with Gemini** (`responseMimeType: application/json` + `responseSchema`):
    ```json
    {
      "peticiones":     [{ "tipo_peticion": "licencia|acceso|informacion|otro", "codigo_dominio": "LIC_M365",
@@ -198,94 +202,95 @@ Cada mensaje (`ChatService`) sigue estos pasos:
      "cambios_tarea":      [{ "tarea": "#303", "estado": "hecha", "urgencia": null, "fecha_limite": null, "responsable": null }]
    }
    ```
-   Es el esquema pedido, ampliado para admitir varias peticiones, tareas propias y memorias en un mismo mensaje, y
-   `dependencias` para relaciones que el usuario expresa entre tareas existentes o nuevas ("sin la licencia no puedo
-   hacer el briefing"). A Gemini se le pasan también las peticiones abiertas que el usuario ya ha hecho, con su `#id`.
-3. **Asignación y enlaces** (`AsignacionService`), en este orden:
-   1. Crea las peticiones (dominio propuesto por Gemini o, si no, por palabras clave; responsable con menos tareas
-      abiertas) y las tareas propias. Si ya existían no se duplican: se reutilizan y sube su urgencia si ahora es mayor.
-   2. Crea las `dependencias` explícitas, resueltas por `#id` o por título solo entre las tareas del usuario, sus
-      peticiones abiertas y lo creado en ese mensaje. Se rechazan si crearían un ciclo.
-   3. Enlaza con la tarea del proyecto (**dependencia dura**) solo lo que no bloquea ya a otra tarea del mensaje,
-      para que la cadena quede `datos → guion → ensayo → demo` en vez de colgarlo todo de la demo. El proyecto casa
-      con tareas `Proyecto: …` (que se crean si no existen) o, si es un proyecto con nombre propio conocido, con sus tareas.
-   Los textos del JSON de Gemini se revisan para recuperar letras acentuadas que a veces llegan corruptas.
-4. **Memoria**: guarda lo relevante evitando repeticiones.
-5. **Respuesta en lenguaje natural** con Gemini, confirmando exactamente las acciones realizadas.
+   This is the requested schema, extended to support several requests, own tasks and memories in a single message,
+   plus `dependencias` for relationships the user expresses between existing or new tasks ("without the license I
+   can't do the briefing"). Gemini is also given the open requests the user has already made, with their `#id`.
+3. **Assignment and links** (`AsignacionService`), in this order:
+   1. Creates the requests (domain proposed by Gemini or, failing that, by keywords; owner is whoever has the fewest
+      open tasks) and the own tasks. If they already existed they are not duplicated: they are reused and their
+      urgency is raised if the new one is higher.
+   2. Creates the explicit `dependencias`, resolved by `#id` or by title only among the user's tasks, their open
+      requests and what was created in that message. They are rejected if they would create a cycle.
+   3. Links to the project task (**hard dependency**) only what doesn't already block another task in the message,
+      so the chain ends up as `data → script → rehearsal → demo` instead of hanging everything off the demo. The
+      project matches `Proyecto: …` tasks (created if they don't exist) or, if it is a known named project, its tasks.
+   The texts in Gemini's JSON are reviewed to recover accented letters that sometimes arrive corrupted.
+4. **Memory**: stores what is relevant, avoiding repetition.
+5. **Natural-language reply** with Gemini, confirming exactly the actions performed.
 
-Las llamadas a Gemini se hacen fuera de las transacciones de base de datos. **Sin API key, o si Gemini falla**
-(cuota agotada, red...), el chat sigue funcionando con `ExtractorHeuristico` (reglas para las frases típicas) y
-una respuesta con plantilla. La interfaz indica en cada respuesta qué modo se ha usado.
+Gemini calls are made outside database transactions. **Without an API key, or if Gemini fails** (quota exhausted,
+network...), the chat keeps working with `ExtractorHeuristico` (rules for typical phrases) and a templated reply. The
+interface shows in every reply which mode was used.
 
-## API REST
+## REST API
 
-| Método | Ruta | Descripción |
+| Method | Route | Description |
 |---|---|---|
-| GET | `/api/empleados?q=` | Empleados (login simulado) |
-| GET | `/api/empleados/{id}/tareas?incluirHechas=` | Tareas del empleado ordenadas por urgencia calculada |
-| GET | `/api/empleados/{id}/peticiones` | Tareas que ha pedido a otras personas |
-| GET | `/api/empleados/{id}/memoria` | Memoria de contexto |
-| GET, POST | `/api/tareas` | Listar / crear tarea (recalcula prioridades) |
-| GET, PATCH | `/api/tareas/{id}` | Ver / modificar (estado, urgencia, título, fecha límite) |
-| GET | `/api/tareas/{id}/dependencias` | Qué bloquea y quién la bloquea |
-| GET, POST | `/api/dependencias` | Listar / crear (valida ciclos, recalcula) |
-| DELETE | `/api/dependencias/{id}` | Eliminar (recalcula) |
-| POST | `/api/priorizacion/recalcular` | Recálculo bajo demanda |
-| GET | `/api/grafo?empleadoId=&proyectoId=&soloConDependencias=` | Nodos y aristas; se puede filtrar por persona o proyecto |
-| GET | `/api/dominios` | Directorio de responsabilidades |
-| GET | `/api/proyectos` | Proyectos con salud, avance y alertas |
-| GET | `/api/proyectos/{id}` | Detalle: tareas, prioridades, siguientes pasos, cuellos, equipo, hitos y diario |
-| POST, PATCH | `/api/proyectos`, `/api/proyectos/{id}` | Crear y modificar |
-| PUT, DELETE | `/api/proyectos/{id}/miembros[/{empleadoId}]` | Equipo |
-| POST, PATCH | `/api/proyectos/{id}/hitos`, `/api/hitos/{id}` | Hitos |
-| POST, PATCH | `/api/proyectos/{id}/notas`, `/api/notas/{id}` | Diario y resolución de riesgos |
-| POST | `/api/chat/{empleadoId}/mensajes` | Enviar mensaje al asistente `{ "mensaje": "..." }` |
-| GET | `/api/chat/{empleadoId}/mensajes` | Historial |
-| PATCH | `/api/memoria/{id}/archivar` | Marcar un recuerdo como no vigente |
-| GET | `/api/ia/estado` | Si Gemini está configurado y qué modelo usa |
+| GET | `/api/empleados?q=` | Employees (simulated login) |
+| GET | `/api/empleados/{id}/tareas?incluirHechas=` | The employee's tasks sorted by calculated urgency |
+| GET | `/api/empleados/{id}/peticiones` | Tasks they have requested from other people |
+| GET | `/api/empleados/{id}/memoria` | Context memory |
+| GET, POST | `/api/tareas` | List / create task (recalculates priorities) |
+| GET, PATCH | `/api/tareas/{id}` | View / modify (status, urgency, title, due date) |
+| GET | `/api/tareas/{id}/dependencias` | What it blocks and who blocks it |
+| GET, POST | `/api/dependencias` | List / create (validates cycles, recalculates) |
+| DELETE | `/api/dependencias/{id}` | Delete (recalculates) |
+| POST | `/api/priorizacion/recalcular` | On-demand recalculation |
+| GET | `/api/grafo?empleadoId=&proyectoId=&soloConDependencias=` | Nodes and edges; can be filtered by person or project |
+| GET | `/api/dominios` | Responsibilities directory |
+| GET | `/api/proyectos` | Projects with health, progress and alerts |
+| GET | `/api/proyectos/{id}` | Detail: tasks, priorities, next steps, bottlenecks, team, milestones and log |
+| POST, PATCH | `/api/proyectos`, `/api/proyectos/{id}` | Create and modify |
+| PUT, DELETE | `/api/proyectos/{id}/miembros[/{empleadoId}]` | Team |
+| POST, PATCH | `/api/proyectos/{id}/hitos`, `/api/hitos/{id}` | Milestones |
+| POST, PATCH | `/api/proyectos/{id}/notas`, `/api/notas/{id}` | Log and risk resolution |
+| POST | `/api/chat/{empleadoId}/mensajes` | Send a message to the assistant `{ "mensaje": "..." }` |
+| GET | `/api/chat/{empleadoId}/mensajes` | History |
+| PATCH | `/api/memoria/{id}/archivar` | Mark a memory as no longer valid |
+| GET | `/api/ia/estado` | Whether Gemini is configured and which model it uses |
 
-Los errores se devuelven como `ProblemDetail` (`{ "status", "title", "detail" }`). Las escrituras aceptan la cabecera
-`X-Empleado-Id` (el usuario del login simulado), que se guarda como autor en el diario del proyecto.
+Errors are returned as `ProblemDetail` (`{ "status", "title", "detail" }`). Writes accept the `X-Empleado-Id` header
+(the simulated-login user), which is stored as the author in the project log.
 
-## Estructura del backend
+## Backend Structure
 
 ```
 backend/src/main/java/com/orgbrain
 ├── config/       GeminiProperties, CORS
 ├── controller/   REST
-├── dto/          records de entrada/salida + DtoMapper
-├── entity/       entidades JPA y enums
-├── exception/    errores → ProblemDetail
+├── dto/          input/output records + DtoMapper
+├── entity/       JPA entities and enums
+├── exception/    errors → ProblemDetail
 ├── repository/   Spring Data JPA
-├── seed/         datos simulados, proyectos y migraciones (CommandLineRunner, Datafaker)
-├── service/      motor de priorización, chat, asignación, memoria, tareas, dependencias
+├── seed/         simulated data, projects and migrations (CommandLineRunner, Datafaker)
+├── service/      prioritization engine, chat, assignment, memory, tasks, dependencies
 │   └── ia/       GeminiClient, ExtractorHeuristico
-└── util/         normalización de texto y palabras clave
+└── util/         text normalization and keywords
 backend/src/main/resources
 ├── application.yml
-└── schema.sql    esquema compatible con MariaDB 10.4 / MySQL
+└── schema.sql    schema compatible with MariaDB 10.4 / MySQL
 ```
 
-Tests unitarios (motor, extractor por reglas, texto): `.\mvnw.cmd test`.
-Tests de integración del chat con Gemini simulado (necesitan XAMPP; usan la BD `orgbrain_it`):
+Unit tests (engine, rule-based extractor, text): `.\mvnw.cmd test`.
+Chat integration tests with a mocked Gemini (they need XAMPP; they use the `orgbrain_it` database):
 `.\mvnw.cmd test "-Dit=true"`.
 
-## Notas técnicas
+## Technical Notes
 
-- **MariaDB 10.4 de XAMPP**: Hibernate 7 solo soporta oficialmente MariaDB ≥ 10.6 y genera `ALTER TABLE IF EXISTS`,
-  que 10.4 no entiende. Por eso el esquema va en `schema.sql` (Hibernate solo lo valida) y se usa
-  `MariaDBLegacyDialect`. El aviso *"version 10.4 … no longer supported"* al arrancar es esperado.
-- **Proyectos conocidos** (`orgbrain.proyectos` en `application.yml`): los usa el seeder para generar títulos de
-  tareas; el asistente reconoce los proyectos que hay en la base de datos.
-- **Migración automática**: al arrancar sobre una base de datos anterior a la gestión de proyectos se añade la
-  columna `tarea.proyecto_id`, se crean los 8 proyectos, se les asignan las tareas por su título, las tareas paraguas
-  "Proyecto: …" que creaba el asistente pasan a ser proyectos reales y se reparan los textos que Gemini devolvió con
-  letras corruptas. Solo ocurre si todavía no hay ningún proyecto.
+- **XAMPP's MariaDB 10.4**: Hibernate 7 only officially supports MariaDB ≥ 10.6 and generates `ALTER TABLE IF EXISTS`,
+  which 10.4 doesn't understand. That's why the schema lives in `schema.sql` (Hibernate only validates it) and
+  `MariaDBLegacyDialect` is used. The warning *"version 10.4 … no longer supported"* at startup is expected.
+- **Known projects** (`orgbrain.proyectos` in `application.yml`): used by the seeder to generate task titles; the
+  assistant recognizes the projects that exist in the database.
+- **Automatic migration**: when starting on a database that predates project management, the `tarea.proyecto_id`
+  column is added, the 8 projects are created, tasks are assigned to them by title, the umbrella "Proyecto: …" tasks
+  the assistant used to create become real projects, and the texts Gemini returned with corrupted letters are
+  repaired. It only happens if there are no projects yet.
 
-## Fuera de alcance en v1 / siguientes pasos
+## Out of Scope in v1 / Next Steps
 
-- Integraciones con correo, Teams, Slack, Jira.
-- Autenticación corporativa (SSO / Entra ID).
-- Aprender el directorio "quién hace qué" observando patrones (en v1 es fijo, del seeder).
-- Permisos: cualquiera puede modificar cualquier proyecto (el login es simulado), aunque todo queda firmado en el diario.
-- Memoria con embeddings y búsqueda semántica (en v1, palabras clave).
+- Integrations with email, Teams, Slack, Jira.
+- Corporate authentication (SSO / Entra ID).
+- Learning the "who does what" directory by observing patterns (in v1 it is fixed, from the seeder).
+- Permissions: anyone can modify any project (the login is simulated), although everything is signed in the log.
+- Memory with embeddings and semantic search (keywords in v1).
